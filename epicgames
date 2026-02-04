@@ -1,0 +1,51 @@
+#!/usr/bin/env bash
+base_path="/opt/shebangs/EpicFreeGames"
+
+if [ ! -d "${base_path}/venv" ]; then
+	python3 -m venv "${base_path}/venv"
+	source "${base_path}/venv/bin/activate"
+	pip install --upgrade pip
+	pip install requests
+else
+	source "${base_path}/venv/bin/activate"
+fi
+interactive=false
+
+while getopts ":i" opt; do
+  case $opt in
+    i)
+      interactive=true
+      ;;
+    \?)
+      echo "Invalid option: -$OPTARG" >&2
+      exit 1
+      ;;
+  esac
+done
+
+ALL_OUTPUT=$(python "${base_path}/get_games.py")
+TMPDIR=$(mktemp -d)
+
+mapfile -t TITLES < <(echo "$ALL_OUTPUT" | grep "^TITLE" | sed 's/^TITLE[0-9]*: //')
+mapfile -t ENDS < <(echo "$ALL_OUTPUT" | grep "^END" | sed 's/^END[0-9]*: //')
+mapfile -t IMAGES < <(echo "$ALL_OUTPUT" | grep "^IMAGE" | sed 's/^IMAGE[0-9]*: //')
+
+for (( i=0; i<${#TITLES[@]}; i++ )); do
+    url="${IMAGES[$i]}"
+    filename="$TMPDIR/game_$i.jpg"
+
+    echo "───────────────────────────$((i+1))───────────────────────────"
+    echo "Title: ${TITLES[$i]}"
+    echo "Ends: ${ENDS[$i]}"
+    
+    if $interactive; then
+        if [[ -n "$url" ]]; then
+            curl -s -L "$url" -o "$filename"
+            chafa "$filename" --symbols braille --scale=0.15
+        fi
+    fi
+done
+echo "───────────────────────────────────────────────────────"
+
+rm -rf "$TMPDIR"
+deactivate
