@@ -62,10 +62,7 @@ def main():
         return
     else:
         for i in range(len(games)):
-            print(f"TITLE{i}: {games[i].title}")
-            print(f"END{i}: {games[i].end_date}")
-            print(f"IMAGE{i}: {games[i].image_url}")
-            print("---------------------")
-
+            print(f"{games[i].title}§{games[i].end_date}§{games[i].image_url}")
+            
 if __name__ == "__main__":
     main()

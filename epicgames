@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 base_path="/opt/shebangs/EpicFreeGames"
 
+# create venv if not exist and activate
 if [ ! -d "${base_path}/venv" ]; then
 	python3 -m venv "${base_path}/venv"
 	source "${base_path}/venv/bin/activate"
@@ -9,43 +10,37 @@ if [ ! -d "${base_path}/venv" ]; then
 else
 	source "${base_path}/venv/bin/activate"
 fi
-interactive=false
+
+# change render_image if -i is used
+render_image=false
 
 while getopts ":i" opt; do
   case $opt in
-    i)
-      interactive=true
-      ;;
-    \?)
-      echo "Invalid option: -$OPTARG" >&2
-      exit 1
-      ;;
+    i)render_image=true;;
+    \?)echo "Invalid option: -$OPTARG" >&2
+       exit 1;;
   esac
 done
 
+# get output from get_games.py and create temp directory
 ALL_OUTPUT=$(python "${base_path}/get_games.py")
 TMPDIR=$(mktemp -d)
 
-mapfile -t TITLES < <(echo "$ALL_OUTPUT" | grep "^TITLE" | sed 's/^TITLE[0-9]*: //')
-mapfile -t ENDS < <(echo "$ALL_OUTPUT" | grep "^END" | sed 's/^END[0-9]*: //')
-mapfile -t IMAGES < <(echo "$ALL_OUTPUT" | grep "^IMAGE" | sed 's/^IMAGE[0-9]*: //')
-
-for (( i=0; i<${#TITLES[@]}; i++ )); do
-    url="${IMAGES[$i]}"
+# print all lines and render image
+IFS=$'\n' read -rd '' -a LINES <<< "$ALL_OUTPUT"
+for (( i=0; i<${#LINES[@]}; i++ )); do
+  IFS="§" read -r title end_date img_url <<< "${LINES[$i]}"
+  echo -e "\n───────────────────────────$((i+1))───────────────────────────"
+  echo "Title: $title"
+  echo "Ends:  $end_date"
+  if [[ "$render_image" == true && -n "$img_url" ]]; then
     filename="$TMPDIR/game_$i.jpg"
-
-    echo "───────────────────────────$((i+1))───────────────────────────"
-    echo "Title: ${TITLES[$i]}"
-    echo "Ends: ${ENDS[$i]}"
-    
-    if $interactive; then
-        if [[ -n "$url" ]]; then
-            curl -s -L "$url" -o "$filename"
-            chafa "$filename" --symbols braille --scale=0.15
-        fi
-    fi
+    curl -s -L "$img_url" -o "$filename"
+    echo; chafa "$filename" --symbols braille --scale=0.15
+  fi
 done
-echo "───────────────────────────────────────────────────────"
+echo -e "───────────────────────────────────────────────────────\n"
 
+# delete all images in temp directory and deactivate venv
 rm -rf "$TMPDIR"
 deactivate
