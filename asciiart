@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+base_path="/opt/shebangs/AsciiArtGenerator"
+
+# Export variable to suppress warnings
+export OPENCV_LOG_LEVEL=OFF
+
+# create venv if not exist and activate
+if [ ! -d "${base_path}/venv" ]; then
+	python3 -m venv "${base_path}/venv"
+	source "${base_path}/venv/bin/activate"
+	pip install --upgrade pip
+	pip install opencv-python
+else
+	source "${base_path}/venv/bin/activate"
+fi
+
+python3 "${base_path}/generator.py" "$1" "$2"

@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 base_path="/opt/shebangs/EpicFreeGames"
 
+# Export variable to suppress warnings
+export OPENCV_LOG_LEVEL=OFF
+
 # create venv if not exist and activate
 if [ ! -d "${base_path}/venv" ]; then
 	python3 -m venv "${base_path}/venv"
