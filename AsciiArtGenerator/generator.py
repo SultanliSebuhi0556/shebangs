@@ -39,7 +39,7 @@ if __name__ == "__main__":
             
             Please provide with:
             1 - image path
-            2 - scale (scale must be greater than 0,)
+            2 - scale (scale must be greater than 0 and quality increases with scale)
 
             Example: asciiart  my_image.png  2
                          ^           ^       ^
