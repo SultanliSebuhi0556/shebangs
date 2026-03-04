@@ -26,14 +26,14 @@ while getopts ":i" opt; do
 done
 
 # get output from get_games.py and create temp directory
-ALL_OUTPUT=$(python "${base_path}/get_games.py")
+ALL_OUTPUT=$(python "${base_path}/main.py")
 TMPDIR=$(mktemp -d)
 
 # print all lines and render image
 IFS=$'\n' read -rd '' -a LINES <<< "$ALL_OUTPUT"
 for (( i=0; i<${#LINES[@]}; i++ )); do
   IFS="§" read -r title end_date img_url <<< "${LINES[$i]}"
-  echo -e "\n───────────────────────────$((i+1))───────────────────────────"
+  echo ""
   echo "Title: $title"
   echo "Ends:  $end_date"
   if [[ "$render_image" == true && -n "$img_url" ]]; then
@@ -42,7 +42,7 @@ for (( i=0; i<${#LINES[@]}; i++ )); do
     echo; chafa "$filename" --symbols braille --scale=0.15
   fi
 done
-echo -e "───────────────────────────────────────────────────────\n"
+echo ""
 
 # delete all images in temp directory and deactivate venv
 rm -rf "$TMPDIR"

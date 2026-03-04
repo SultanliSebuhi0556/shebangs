@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-base_path="/opt/shebangs/AsciiArtGenerator"
+base_path="/opt/shebangs/MiniWiki"
 
 # Export variable to suppress warnings
 export OPENCV_LOG_LEVEL=OFF
@@ -9,10 +9,10 @@ if [ ! -d "${base_path}/venv" ]; then
 	python3 -m venv "${base_path}/venv"
 	source "${base_path}/venv/bin/activate"
 	pip install --upgrade pip
-	pip install opencv-python
+	pip install requests
 else
 	source "${base_path}/venv/bin/activate"
 fi
 
-python3 "${base_path}/main.py" "$1" "$2"
+python3 "${base_path}/main.py"
 deactivate
