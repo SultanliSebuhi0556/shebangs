@@ -1,30 +1,35 @@
-import requests as _client
+import requests
 
-headers = { "User-Agent": "my-python-app/1.0 (your_email@example.com)" }
+def get_json(url):
+    try:
+        response = requests.get(url, headers={"User-Agent": "my-python-app/1.0 (your_email@example.com)"}, timeout=5)
+        response.raise_for_status()
+        return response.json()
+    except requests.RequestException as e:
+        print(f"Error: {e}")
+        return None
 
-while(True):
-    search = input("Seach: ").strip().replace(" ", "+")
-    if not search: print("Please enter what you are searching for!"); continue
-    break
+def search():
+    query = input("Search: ").strip()
+    if not query: return print("Search term required.")
 
-search_url = f"https://en.wikipedia.org/w/rest.php/v1/search/title?q={search}&limit=10"
-search_response = _client.get(search_url, headers=headers)
-if(search_response.status_code != 200): print(f"Request didm't succeed! Status code : {search_response.status_code}")
+    data = get_json(f"https://en.wikipedia.org/w/rest.php/v1/search/title?q={query}&limit={10}")
+    return data.get('pages', []) if data else []
 
-search_result = search_response.json()['pages'][:25]
+def display_summary(results):
+    if not results: return print("No results found.")
 
-print("Choice one below:")
-response_length = len(search_result)
-for i in range(0, response_length): print(f"{i}) " + search_result[i]['title'])
+    for i, page in enumerate(results):
+        print(f"{i}) {page['title']}")
 
-while(True):
-    try: user_input = int(input(f"Choice 0-{response_length-1}: "))
-    except: print("Please inseart a number!"); continue
-    if (user_input < 0 or user_input > response_length-1): print(f"Please inseart a number between 0 and {response_length-1}!"); continue
-    break
+    try:
+        idx = int(input(f"Select (0-{len(results)-1}): "))
+        if not 0 <= idx < len(results): raise ValueError
+    except ValueError: return print("Invalid selection.")
 
-summary_url = f"https://en.wikipedia.org/api/rest_v1/page/summary/{search_result[user_input]['key']}"
-response = _client.get(summary_url, headers=headers)
-if(response.status_code != 200): print(f"Request didm't succeed! Status code : {response.status_code}")
+    data = get_json(f"https://en.wikipedia.org/api/rest_v1/page/summary/{results[idx]['key']}")
+    if data: print(f"\n{data.get('extract', 'No summary available.')}\n")
 
-print("\n" + response.json()['extract'] + "\n")
+if __name__ == "__main__":
+    res = search()
+    display_summary(res)
